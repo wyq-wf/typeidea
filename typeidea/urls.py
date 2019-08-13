@@ -16,6 +16,13 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 
-urlpatterns = [
-    url(r'^admin/', admin.site.urls),
+from .custom_site import custom_site
+
+urlpatterns = [   
+    #自定义网站(site)
+    url(r'^super_admin/',admin.site.urls),
+    url(r'^admin/',custom_site.urls),
+
+    #默认网站(site)
+    #url(r'^admin/', admin.site.urls),
 ]

@@ -1,13 +1,27 @@
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
+from django.contrib.admin.models import LogEntry
 
 from .models import Category,Tag,Post
+from .adminforms import PostAdminForm
+from typeidea.base_admin import BaseOwnerAdmin
+from typeidea.custom_site import custom_site
 
 # Register your models here.
 
-@admin.register(Category)
+
+class PostInline(admin.TabularInline):   #StackedInline样式不同
+	"""在分类页面直接编辑文章"""
+	fields = ('title','desc')
+	extra = 1 #控制额外多几个
+	model = Post
+
+
+
+@admin.register(Category,site=custom_site)
 class CategoryAdmin(admin.ModelAdmin):
+	inlines = [PostInline,] 
 	list_display = ('name','status','is_nav','owner','created_time','post_count')
 	fields = ('name','status','is_nav','owner')
 
@@ -24,7 +38,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 
 
-@admin.register(Tag)
+@admin.register(Tag,site=custom_site)
 class TagAdmin(admin.ModelAdmin):
 	list_display = ('name','status','created_time')
 	fields = ('name','status','owner')
@@ -54,9 +68,10 @@ class CategoryOwnerField(admin.SimpleListFilter):
         
 
 
-@admin.register(Post)
+@admin.register(Post,site=custom_site)
 class PostAdmin(admin.ModelAdmin):
 	# 用来配置列表页面展示那些字段
+	form = PostAdminForm
 	list_display = [
 	    'title','category','status',
 	    'created_time','owner','operator',
@@ -74,13 +89,16 @@ class PostAdmin(admin.ModelAdmin):
 
 	exclude = ('owner',) #指定那些字段不展示
 
-	#fields = (
-		#('category','title'),
-		#'decs',
-		#'status',
-		#'content',
-		#'tag',
-		#)  被下文替代
+	"""
+	fields = (
+		('category','title'),
+		'decs',
+		'status',
+		'content',
+		'tag',
+		)  
+	被下文替代
+	"""
 
 	fieldsets = (
 		('基础配置',{
@@ -92,24 +110,31 @@ class PostAdmin(admin.ModelAdmin):
 			}),
 		('内容',{
 			'fields':(
-				'decs',
+				'desc',  
 				'content',
 				),
 			}),
 		('额外信息',{
-			'calsses':('collapse',),
+			'classes':('collapse',),
 			'fields':('tag',),
 			}),
 		)
+	"""
+	针对多对多字段展示的配置
+	filter_horizontal = ('tag',)
+	filter_vertical = ('tage',)
+	"""
 
 	def operator(self,obj):
 		#自定函数可以返回HTML，需要通过format_html函数处理
 		#reverse根据名称解析出URL地址
 		return format_html('<a href="{}">编辑</a>',
-			reverse('admin:blog_post_change',args=(obj.id,))
+			reverse('cus_admin:blog_post_change',args=(obj.id,))
 			)
 	operator.short_description = '操作' #指定表头的展示文案
 
+	"""
+	重构至typetider/base_admin.py admin基类中
 	def save_model(self,request,obj,form,change):
 		obj.owner = request.user
 		return super(PostAdmin,self).save_model(request,obj,form,change)
@@ -117,6 +142,7 @@ class PostAdmin(admin.ModelAdmin):
 	def get_queryset(self,request):
 		qs = super(PostAdmin,self).get_queryset(request)
 		return qs.filter(owner=request.user)
+	"""
 
 	class Meta:
 		css = {
@@ -124,3 +150,12 @@ class PostAdmin(admin.ModelAdmin):
 			),
 		}
 		js = ('https://cdn.bootcss.com/bootstrap/4.0.0-beta.2/js/bootstrap.bundle.js',)
+
+
+
+@admin.register(LogEntry,site=custom_site)
+class LogEntryAdmin(admin.ModelAdmin):
+	"""查看操作日志"""
+	list_display = ['object_repr','object_id','action_flag','user','change_message']
+
+

@@ -57,7 +57,7 @@ class Post(models.Model):
 		)
 
 	title = models.CharField(max_length=225,verbose_name='标题')
-	decs = models.CharField(max_length=1024,blank=True,verbose_name='摘要')
+	desc = models.CharField(max_length=1024,blank=True,verbose_name='摘要')
 	content = models.TextField(verbose_name='正文',
 		help_text='正文必须为MarkDown格式')
 	status = models.PositiveIntegerField(default=STATUS_NORMAL,

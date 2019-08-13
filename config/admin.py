@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import Link,SideBar
+from typeidea.base_admin import BaseOwnerAdmin
 
 # Register your models here.
 
@@ -9,9 +10,11 @@ class LinkAdmin(admin.ModelAdmin):
 	lsit_display = ('title','href','status','weight','created_time')
 	fields = ('title','href','status','weight')
 
+	""""
 	def save_model(self,request,obj,form,change):
 		obj.owner = request.user
 		return super(LinkAdmin,self).save_model(request,obj,form,change)
+	"""
 
 
 
@@ -20,6 +23,8 @@ class SideBarAdmin(admin.ModelAdmin):
 	list_display  = ('title','display','content','created_time')
 	fields = ('title','display','content')
 
+	"""
 	def save_model(self,request,obj,form,change):
 		obj.owner = request.user
 		return super(SideBarAdmin,self).save_model(request,obj,form,change)
+	"""
