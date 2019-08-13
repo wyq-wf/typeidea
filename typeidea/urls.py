@@ -17,11 +17,21 @@ from django.conf.urls import url
 from django.contrib import admin
 
 from .custom_site import custom_site
+from blog.views import post_list,post_detail
+from config.views import links
 
 urlpatterns = [   
     #自定义网站(site)
     url(r'^super_admin/',admin.site.urls),
     url(r'^admin/',custom_site.urls),
+    #博客首页
+    url(r'^$',post_list),
+    url(r'^category/(?P<category_id>\d+)/$',post_list),
+    url(r'^tag/(?P<tag_id>\d+)/$',post_list),
+
+    url(r'^post/(?P<post_id>\d+).html$',post_detail),
+
+    url(r'^links/$',links),
 
     #默认网站(site)
     #url(r'^admin/', admin.site.urls),
