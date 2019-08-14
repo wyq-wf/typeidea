@@ -26,6 +26,25 @@ class Category(models.Model):
 	def __str__(self):
 		return self.name
 
+	@classmethod
+	def get_navs(cls):
+		categories = cls.objects.filter(status=cls.STATUS_NORMAL)
+		nav_categorise = []
+		normal_categorise = []
+		for cate in categories:
+			if cate.is_nav:
+				nav_categorise.append(cate)
+			else:
+				normal_categorise.append(cate)
+		"""		
+		nav_categorise = categories.filter(is_nav=True)
+		normal_categorise = categories.filter(is_nav=False)
+		"""
+		return {
+			'navs':nav_categorise,
+			'categories':normal_categorise,
+		}
+
 class Tag(models.Model):
 	STATUS_NORMAL = 1
 	STATUS_DELETE = 0
@@ -67,10 +86,47 @@ class Post(models.Model):
 	owner = models.ForeignKey(User,verbose_name='作者')
 	created_time = models.DateTimeField(auto_now_add=True,verbose_name='创建时间')
 
+	pv = models.PositiveIntegerField(default=1)
+	uv = models.PositiveIntegerField(default=1)
+
 	class Meta:
 		verbose_name = verbose_name_plural = '文章'
 		ordering = ['-id'] #根id进行降序排列
 
 	def __str__(self):
 		return self.title
+
+	@staticmethod
+	def get_by_tag(tag_id):
+		try:
+			tag = Tag.objects.get(id=tag_id)
+		except Tag.DoesNotExist:
+			tag=None
+			post_list=[]
+		else:
+			post_list = tag.post_set.filter(status=Post.STATUS_NORMAL)\
+				.select_related('owner','category')
+		return post_list,tag
+
+	@staticmethod
+	def get_by_category(category_id):
+		try:
+			category = Category.objects.get(id=category_id)
+		except Category.DoesNotExist:
+			category=None
+			post_list = []
+		else:
+			post_list = category.post_set.filter(status=Post.STATUS_NORMAL)\
+				.select_related('owner','category')
+		return post_list,category
+
+	@classmethod
+	def latest_posts(cls):
+		queryset = cls.objects.filter(status=cls.STATUS_NORMAL)
+		return queryset
+
+	@classmethod
+	def hot_posts(cls):
+		return cls.objects.filter(status=cls.STATUS_NORMAL).order_by('-pv')
+
 
